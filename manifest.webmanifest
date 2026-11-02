@@ -1,6 +1,6 @@
 {
- "name": "Gerador de Carimbos Corvello 3D",
- "short_name": "Carimbos C3D",
+ "name": "StudioC3D",
+ "short_name": "StudioC3D",
  "description": "Imagem P&B ou SVG vira STL de carimbo em malha única.",
  "start_url": "./",
  "scope": "./",
