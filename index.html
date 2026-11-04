@@ -51,6 +51,19 @@
   --layers:repeating-linear-gradient(180deg, rgb(0 0 0 / .035) 0 1px, transparent 1px 4px)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+.queue{padding:10px 12px;display:grid;gap:10px}
+.qhead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.qhead h2{font:700 .74rem var(--display);letter-spacing:.08em;text-transform:uppercase;margin:0}
+.qlist{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scroll-snap-type:x proximity}
+.qit{position:relative;flex:none;width:78px;display:grid;gap:4px;justify-items:center;border:1.5px solid var(--line);background:var(--panel2);border-radius:12px;padding:6px 4px;cursor:pointer;scroll-snap-align:start;color:var(--fg)}
+.qit[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.qit img{width:60px;height:60px;object-fit:contain;background:#fff;border-radius:7px}
+.qit span{font-size:.68rem;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.qit i{position:absolute;top:4px;left:4px;width:12px;height:12px;border-radius:50%;border:2px solid var(--panel2);background:var(--line)}
+.qit i.ok{background:var(--okline)} .qit i.mid{background:var(--mid)} .qit i.bad{background:var(--bad)}
+.qx{position:absolute;top:2px;right:2px;width:24px;height:24px;border-radius:50%;border:0;background:rgb(0 0 0 / .55);color:#fff;font-size:14px;line-height:24px;padding:0;cursor:pointer}
+.qacts{display:flex;gap:8px;flex-wrap:wrap}
+.qacts .btn2{flex:1 1 auto}
 .modes{display:inline-grid;grid-template-columns:1fr 1fr 1fr;gap:3px;background:var(--soft);border:1px solid var(--line);border-radius:11px;padding:3px}
 .modes button{border:0;background:transparent;color:var(--muted);font:600 .82rem var(--display);letter-spacing:.02em;padding:8px 12px;border-radius:8px;cursor:pointer;min-height:38px}
 .modes button[aria-pressed="true"]{background:var(--accent-grad);color:var(--on-accent)}
@@ -197,8 +210,17 @@ details[open]>summary::after{transform:rotate(-135deg) translateY(-1px)}
 
     <div class="side">
       <div class="card filebar" id="fileBar">
-        <label class="file"><input id="fileArt" type="file" accept="image/*,.svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>Escolher imagem</label>
+        <label class="file"><input id="fileArt" type="file" accept="image/*,.svg" multiple><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>Escolher imagens</label>
         <span class="fname" id="artName"><span class="tag">Exemplo</span></span>
+      </div>
+      <div class="card queue" id="queue" hidden>
+        <div class="qhead"><h2>Imagens · <span id="qN">0</span></h2><span class="note" id="qHint">Toque numa imagem para ajustar</span></div>
+        <div class="qlist" id="qList" role="group" aria-label="Imagens carregadas"></div>
+        <div class="qacts">
+          <button class="btn2" type="button" id="qApply">Usar estes ajustes em todas</button>
+          <button class="btn2" type="button" id="qKit">Adicionar todas ao kit</button>
+          <button class="btn2" type="button" id="qClear">Limpar lista</button>
+        </div>
       </div>
       <div id="msg" class="msg" hidden></div>
 
@@ -1533,7 +1555,7 @@ function stepper(parent, cfg) {
   const changed = () => { cfg.onChange ? cfg.onChange(v) : schedule(); persist(); };
   if (saved[id] != null && isFinite(+saved[id])) v = clamp(+saved[id]);
   show();
-  steppers[id] = { get: () => v, set: (x) => set(x), reset: () => set(value), cfg };
+  steppers[id] = { get: () => v, set: (x) => set(x), setQuiet: (x) => set(x, true), reset: () => set(value), cfg };
   return steppers[id];
 }
 const V = (id) => steppers[id].get();
@@ -1624,30 +1646,113 @@ function imageToGray(img, maxSide) {
   return { gray: g, w: c.width, h: c.height };
 }
 function loadImg(src) { return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; }); }
-async function loadArtFile(file) {
-  hideMsg();
-  try {
-    let img;
-    if (/svg/i.test(file.type) || /\.svg$/i.test(file.name)) {
-      const doc = new DOMParser().parseFromString(await file.text(), "image/svg+xml"), svg = doc.documentElement;
-      let vw = parseFloat(svg.getAttribute("width")), vh = parseFloat(svg.getAttribute("height"));
-      const vb = (svg.getAttribute("viewBox") || "").split(/[\s,]+/).map(Number);
-      if (vb.length === 4 && vb[2] > 0) { vw = vb[2]; vh = vb[3]; }
-      if (!(vw > 0 && vh > 0)) { vw = 1; vh = 1; }
-      const k = 1400 / Math.max(vw, vh);
-      if (!svg.getAttribute("viewBox")) svg.setAttribute("viewBox", "0 0 " + vw + " " + vh);
-      svg.setAttribute("width", Math.round(vw * k)); svg.setAttribute("height", Math.round(vh * k));
-      const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml" }));
-      img = await loadImg(url); URL.revokeObjectURL(url);
-    } else { const url = URL.createObjectURL(file); img = await loadImg(url); URL.revokeObjectURL(url); }
-    Object.assign(state, imageToGray(img, 1200));
-    state.artName = file.name.replace(/\.[^.]+$/, "");
-    stampName = "carimbo_" + state.artName; cutName = "cortador_" + state.artName;
-    $("fname").value = state.mode === "cut" ? cutName : stampName;
-    $("artName").textContent = file.name;
-    schedule();
-  } catch (e) { showMsg("Não consegui abrir essa imagem. Tente PNG, JPG ou SVG."); }
+async function fileToGray(file) {
+  let img;
+  if (/svg/i.test(file.type) || /\.svg$/i.test(file.name)) {
+    const doc = new DOMParser().parseFromString(await file.text(), "image/svg+xml"), svg = doc.documentElement;
+    let vw = parseFloat(svg.getAttribute("width")), vh = parseFloat(svg.getAttribute("height"));
+    const vb = (svg.getAttribute("viewBox") || "").split(/[\s,]+/).map(Number);
+    if (vb.length === 4 && vb[2] > 0) { vw = vb[2]; vh = vb[3]; }
+    if (!(vw > 0 && vh > 0)) { vw = 1; vh = 1; }
+    const k = 1400 / Math.max(vw, vh);
+    if (!svg.getAttribute("viewBox")) svg.setAttribute("viewBox", "0 0 " + vw + " " + vh);
+    svg.setAttribute("width", Math.round(vw * k)); svg.setAttribute("height", Math.round(vh * k));
+    const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml" }));
+    img = await loadImg(url); URL.revokeObjectURL(url);
+  } else { const url = URL.createObjectURL(file); img = await loadImg(url); URL.revokeObjectURL(url); }
+  const g = imageToGray(img, 1200);
+  // miniatura para a fila
+  const c = document.createElement("canvas"), iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height, k = 120 / Math.max(iw, ih);
+  c.width = Math.max(1, Math.round(iw * k)); c.height = Math.max(1, Math.round(ih * k));
+  const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height);
+  g.thumb = c.toDataURL("image/png");
+  return g;
 }
+// ---------- fila de imagens: cada uma com os seus ajustes ----------
+const Q_STEPS = ["rel", "mar", "siz", "thk", "thr", "spk"], Q_CHECKS = ["inv", "mir", "fixThin"];
+const queue = []; let qi = -1;
+function snapSettings() { const o = {}; Q_STEPS.forEach(id => o[id] = V(id)); Q_CHECKS.forEach(id => o[id] = $(id).checked); return o; }
+function applySettings(o) { Q_STEPS.forEach(id => { if (o[id] != null) steppers[id].setQuiet(o[id]); }); Q_CHECKS.forEach(id => { if (o[id] != null) $(id).checked = !!o[id]; }); }
+function qSaveCurrent() { if (qi >= 0 && queue[qi]) queue[qi].settings = snapSettings(); }
+function qSelect(i) {
+  if (i < 0 || i >= queue.length) return;
+  qSaveCurrent(); qi = i; const it = queue[i];
+  state.gray = it.gray; state.w = it.w; state.h = it.h; state.artName = it.name;
+  applySettings(it.settings);
+  stampName = it.fname || ("carimbo_" + it.name); cutName = "cortador_" + it.name;
+  if (state.tab !== "kit") $("fname").value = state.mode === "cut" ? cutName : stampName;
+  $("artName").textContent = it.file + (queue.length > 1 ? " · " + (i + 1) + " de " + queue.length : "");
+  renderQueue(); schedule();
+}
+function qStatus(r) {
+  if (!r || !r.thin) return "";
+  const L = r.thin.levels; if (L[0].thinPx) return "bad"; if (L[1].thinPx) return "mid"; return "ok";
+}
+function renderQueue() {
+  const box = $("qList"); box.textContent = "";
+  $("queue").hidden = queue.length < 2 || state.mode === "grid"; $("qN").textContent = queue.length;
+  queue.forEach((it, i) => {
+    const b = document.createElement("div"); b.className = "qit"; b.setAttribute("role", "button"); b.tabIndex = 0; b.setAttribute("aria-pressed", i === qi);
+    b.setAttribute("aria-label", "Ajustar " + it.name);
+    const st = it.status || "", lab = { ok: "linhas ok", mid: "linhas finas (amarelo)", bad: "linhas muito finas (vermelho)" }[st] || "ainda não conferida";
+    b.innerHTML = '<i class="' + st + '" title="' + lab + '"></i><img alt=""><span></span>';
+    b.querySelector("img").src = it.thumb; b.querySelector("span").textContent = it.name;
+    const x = document.createElement("button"); x.type = "button"; x.className = "qx"; x.textContent = "×"; x.setAttribute("aria-label", "Tirar " + it.name + " da lista");
+    x.onclick = (e) => { e.stopPropagation(); qRemove(i); };
+    b.appendChild(x);
+    b.onclick = () => qSelect(i); b.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); qSelect(i); } };
+    box.appendChild(b);
+  });
+  const sel = box.children[qi]; if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+function qRemove(i) {
+  queue.splice(i, 1);
+  if (!queue.length) { qi = -1; renderQueue(); return; }
+  if (qi >= queue.length) qi = queue.length - 1; else if (i < qi) qi--;
+  const k = qi; qi = -1; qSelect(Math.max(0, k));
+}
+async function loadArtFiles(files) {
+  hideMsg();
+  const list = [...files].filter(f => /^image\//.test(f.type) || /\.(svg|png|jpe?g|webp|gif|bmp)$/i.test(f.name));
+  if (!list.length) { showMsg("Não consegui abrir esses arquivos. Use PNG, JPG ou SVG."); return; }
+  qSaveCurrent();
+  const base = qi >= 0 && queue[qi] ? queue[qi].settings : snapSettings(), first = queue.length;
+  let fail = 0;
+  for (let k = 0; k < list.length; k++) {
+    $("artName").textContent = "Abrindo " + (k + 1) + " de " + list.length + "…";
+    try { const g = await fileToGray(list[k]); const name = list[k].name.replace(/\.[^.]+$/, "");
+      queue.push({ id: Date.now() + Math.random(), file: list[k].name, name, gray: g.gray, w: g.w, h: g.h, thumb: g.thumb, settings: Object.assign({}, base), status: "" });
+    } catch (e) { fail++; }
+  }
+  if (fail) showMsg(fail + " arquivo(s) não abriram. Use PNG, JPG ou SVG.");
+  if (queue.length > first) { qi = -1; qSelect(first); }
+}
+window.__studio = { V: (id) => V(id), steppers, get kit() { return kit; }, queue };
+$("qApply").onclick = () => { const o = snapSettings(); queue.forEach(it => { it.settings = Object.assign({}, o); it.status = ""; }); renderQueue(); toast("Ajustes aplicados nas " + queue.length + " imagens."); };
+let qClearArm = 0;
+$("qClear").onclick = () => {
+  if (!qClearArm) { $("qClear").textContent = "Toque de novo para limpar"; qClearArm = setTimeout(() => { qClearArm = 0; $("qClear").textContent = "Limpar lista"; }, 3000); return; }
+  clearTimeout(qClearArm); qClearArm = 0; $("qClear").textContent = "Limpar lista";
+  const keep = qi >= 0 ? queue[qi] : null; queue.length = 0; if (keep) { queue.push(keep); qi = 0; } else qi = -1; renderQueue();
+};
+$("qKit").onclick = async () => {
+  if (!queue.length || !state.base) return;
+  qSaveCurrent();
+  const btn = $("qKit"); btn.disabled = true; let ok = 0, bad = 0;
+  for (let i = 0; i < queue.length; i++) {
+    const it = queue[i]; btn.textContent = "Gerando " + (i + 1) + " de " + queue.length + "…";
+    await new Promise(r => setTimeout(r, 20));
+    const o = it.settings, op = { threshold: o.thr, invert: o.inv, reliefMm: o.rel, marginMm: o.mar, sizePct: o.siz, thickenMm: o.thk, minAreaMm2: o.spk, widthLevelsMm: thinLimits(),
+      fixThinMm: o.fixThin ? thinLimits()[1] : 0, mirror: o.mir, base: Object.assign({}, state.base, { radius: state.base.fitRadius }), embedMm: 0 };
+    const r = buildStamp(it.gray, it.w, it.h, op);
+    if (r.error) { bad++; continue; }
+    it.status = qStatus(r);
+    const mesh = unionStamp(state.baseTris, state.base.zmax, r.shapes, state.base.zmax + o.rel);
+    kitAddItem(it.name, mesh, state.base.zmax); ok++;
+  }
+  btn.disabled = false; btn.textContent = "Adicionar todas ao kit"; renderQueue();
+  toast(ok + " carimbo(s) adicionados ao kit" + (bad ? " · " + bad + " sem área preta" : "") + ".");
+};
 function sampleArt() {
   const c = document.createElement("canvas"); c.width = 900; c.height = 900;
   const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, 900, 900);
@@ -1835,6 +1940,7 @@ function run() {
   r.mesh = unionStamp(state.baseTris, state.base.zmax, r.shapes, state.base.zmax + V("rel"));
   state.result = r; $("dl").disabled = false; $("kitAdd").disabled = false;
   updateThin(r); showView(); draw2D(r);
+  if (qi >= 0 && queue[qi]) { const st = qStatus(r); if (queue[qi].status !== st) { queue[qi].status = st; renderQueue(); } }
   const b = state.base;
   $("stats").innerHTML = "<span>arte <b>Ø" + fmtN(r.artDiameter, 1) + "</b></span><span>peça <b>" + fmtN(b.size[0], 0) + "×" + fmtN(b.size[1], 0) + "×" + fmtN(b.size[2] + V("rel"), 1) + " mm</b></span><span><b>" + (r.mesh.length / 9).toLocaleString("pt-BR") + "</b> tri · malha única</span><span>" + Math.round(performance.now() - t0) + " ms</span>";
 }
@@ -1858,6 +1964,9 @@ function updateThin(r) {
   else if (sp) { $("autofix").textContent = "Sobrou um trecho fino: engrossar tudo +0,04 mm"; $("fixRow").hidden = false; }
 }
 $("autofix").onclick = () => { if (state.mode === "cut") { if (!$("cutFix").checked) { $("cutFix").checked = true; schedule(); persist(); } return; } if ($("fixThin").checked) { steppers.thk.set(V("thk") + 0.04); return; } $("fixThin").checked = true; schedule(); persist(); };
+let toastT = 0;
+function toast(t) { let el = $("toast"); if (!el) { el = document.createElement("div"); el.id = "toast"; el.setAttribute("role", "status"); el.style.cssText = "position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.85rem;z-index:50;max-width:calc(100vw - 32px);text-align:center;box-shadow:0 6px 20px rgb(0 0 0 / .25)"; document.body.appendChild(el); }
+  el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 2600); }
 function showMsg(t) { $("msg").textContent = t; $("msg").hidden = false; }
 function hideMsg() { $("msg").hidden = true; }
 
@@ -2033,7 +2142,7 @@ function setTab(t, noSave) {
   persist();
 }
 $("tMark").onclick = () => setTab("mark"); $("t3d").onclick = () => setTab("3d"); $("tKit").onclick = () => setTab("kit");
-$("fname").addEventListener("input", () => { if (state.mode === "grid") { gridNameTouched = true; return; } if (state.tab === "kit") kitName = $("fname").value; else if (state.mode === "cut") cutName = $("fname").value; else stampName = $("fname").value; });
+$("fname").addEventListener("input", () => { if (state.mode === "stamp" && state.tab !== "kit" && qi >= 0 && queue[qi]) queue[qi].fname = $("fname").value; if (state.mode === "grid") { gridNameTouched = true; return; } if (state.tab === "kit") kitName = $("fname").value; else if (state.mode === "cut") cutName = $("fname").value; else stampName = $("fname").value; });
 // ---------- carimbo ou cortador ----------
 function setMode(m) {
   if (state.tab === "kit" && m === "cut") state.tab = "mark";
@@ -2042,7 +2151,7 @@ function setMode(m) {
   state.mode = m;
   $("mStamp").setAttribute("aria-pressed", m === "stamp"); $("mCut").setAttribute("aria-pressed", m === "cut"); $("mGrid").setAttribute("aria-pressed", m === "grid");
   $("dMain").hidden = m !== "stamp"; $("dCut").hidden = m !== "cut"; $("dGrid").hidden = m !== "grid"; $("dKit").hidden = m !== "stamp"; $("tKit").hidden = m !== "stamp";
-  $("fileBar").hidden = m === "grid"; $("dAdv").hidden = m === "grid";
+  $("fileBar").hidden = m === "grid"; $("dAdv").hidden = m === "grid"; renderQueue();
   $("baseSub").hidden = m !== "stamp"; $("baseRow").hidden = m !== "stamp";
   $("tMark").textContent = m === "stamp" ? "Marca" : "Peças";
   if (m === "grid") { $("thinPills").innerHTML = ""; $("fixRow").hidden = true; $("cutLegend").hidden = true; }
@@ -2116,7 +2225,7 @@ $("kitClear").addEventListener("click", () => {
 });
 
 // ---------- ligações ----------
-$("fileArt").addEventListener("change", (e) => { const f = e.target.files[0]; if (f) { if (state.tab === "kit") setTab("mark"); loadArtFile(f); } e.target.value = ""; });
+$("fileArt").addEventListener("change", (e) => { const fs = e.target.files; if (fs && fs.length) { if (state.tab === "kit") setTab("mark"); loadArtFiles(fs); } e.target.value = ""; });
 $("fileBase").addEventListener("change", async (e) => { const f = e.target.files[0]; if (f) setBase(await f.arrayBuffer(), f.name, false); e.target.value = ""; });
 $("baseReset").addEventListener("click", () => setBase(b64ToBuf(BASE_B64), "", true));
 renderKit(); kitLoad(); summaries();
