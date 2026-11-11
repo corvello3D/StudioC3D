@@ -1,13 +1,13 @@
 {
- "name": "StudioC3D",
- "short_name": "StudioC3D",
- "description": "Imagem P&B ou SVG vira STL de carimbo em malha única.",
+ "name": "OnLab3D",
+ "short_name": "OnLab3D",
+ "description": "Imagem P&B ou SVG vira STL de carimbo, cortador ou grade, em malha única.",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
  "orientation": "portrait",
- "background_color": "#0b1017",
- "theme_color": "#0b1017",
+ "background_color": "#05080d",
+ "theme_color": "#05080d",
  "lang": "pt-BR",
  "icons": [
   {
