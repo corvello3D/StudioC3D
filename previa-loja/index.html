@@ -173,7 +173,7 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:co
 .filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .orders{display:grid;gap:10px;padding-bottom:40px}
 .order{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px;border-left:4px solid var(--st)}
-.order[data-st="novo"]{--st:var(--new)} .order[data-st="producao"]{--st:var(--warn)} .order[data-st="enviado"]{--st:var(--info)} .order[data-st="entregue"]{--st:var(--ok)}
+.order[data-st="cancelado"]{--st:var(--bad)} .order[data-st="novo"]{--st:var(--new)} .order[data-st="producao"]{--st:var(--warn)} .order[data-st="enviado"]{--st:var(--info)} .order[data-st="entregue"]{--st:var(--ok)}
 .o-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .o-top b{font-family:var(--mono)}
 .pill{font:600 .72rem var(--sans);padding:3px 9px;border-radius:999px;border:1px solid var(--st);color:var(--st);background:color-mix(in srgb,var(--st) 12%,transparent)}
@@ -190,7 +190,7 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:co
 .prow .meta{font-size:.78rem;color:var(--muted)}
 .sw{position:relative;width:42px;height:24px;flex:none}
 .sw input{position:absolute;opacity:0;inset:0;cursor:pointer;margin:0}
-.sw span{position:absolute;inset:0;border-radius:999px;background:var(--line);transition:background .15s}
+.sw span{pointer-events:none;position:absolute;inset:0;border-radius:999px;background:var(--line);transition:background .15s}
 .sw span::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--fg);transition:transform .15s}
 .sw input:checked + span{background:var(--accent)}
 .sw input:checked + span::after{transform:translateX(18px);background:var(--on-accent)}
@@ -205,6 +205,37 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:co
 .drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .pics{display:flex;gap:8px;flex-wrap:wrap}
 .pics img{width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+/* painel: extras */
+.pbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.pbar .inp{width:auto;padding:7px 10px;font-size:.86rem}
+.tbl{width:100%;border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums}
+.tbl th{text-align:left;font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td.r,.tbl th.r{text-align:right}
+.scrollx{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:40px}
+.cards2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:40px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px;align-content:start}
+.box h3{font:700 .92rem var(--display);margin:0}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:minmax(0,46%) minmax(0,1fr) auto;gap:8px;align-items:center;font-size:.82rem}
+.bar i{display:block;height:12px;border-radius:6px;background:var(--grad);transform-origin:left;animation:grow .9s cubic-bezier(.2,.8,.2,1) both}
+.bar span:first-child{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tg{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.9rem}
+.wa{--wa:#25d366;--wabg:#0b141a;--wain:#202c33;--waout:#005c4b;border-radius:28px;border:8px solid #1b2129;background:var(--wabg);color:#e9edef;max-width:340px;width:100%;margin:0 auto;overflow:hidden;box-shadow:0 20px 50px -20px rgb(0 0 0 / .6)}
+.wa-h{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#202c33}
+.wa-h img{width:34px;height:34px;border-radius:50%;background:#fff}
+.wa-h b{font-size:.92rem;display:block}.wa-h small{font-size:.72rem;color:#8696a0}
+.wa-b{height:380px;overflow:auto;padding:12px 10px;display:flex;flex-direction:column;gap:6px;background:repeating-linear-gradient(45deg,#0b141a 0 12px,#0d171d 12px 24px)}
+.msg{max-width:88%;background:var(--wain);border-radius:10px;padding:7px 9px 4px;font-size:.84rem;line-height:1.35;white-space:pre-line;animation:rise .35s both}
+.msg small{display:block;text-align:right;color:#8696a0;font-size:.66rem;margin-top:2px}
+.wapop{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:80;width:min(380px,calc(100% - 24px));background:#202c33;color:#e9edef;border-radius:16px;padding:10px 12px;display:grid;grid-template-columns:36px 1fr;gap:10px;box-shadow:0 14px 40px -10px rgb(0 0 0 / .6);animation:popdown .45s cubic-bezier(.3,1.4,.5,1) both;cursor:pointer}
+.wapop .ic{width:36px;height:36px;border-radius:50%;background:#25d366;display:grid;place-items:center;color:#fff;font-weight:800}
+.wapop b{font-size:.82rem}.wapop p{margin:2px 0 0;font-size:.8rem;color:#c5ccd1;white-space:pre-line;max-height:3.9em;overflow:hidden}
+@keyframes popdown{from{transform:translate(-50%,-30px);opacity:0}}
+.label{background:#fff;color:#111;border-radius:6px;padding:14px;font:500 .78rem/1.35 var(--mono);display:grid;gap:8px;border:1px dashed #999}
+.label b{font-family:var(--sans)}
+.barcode{height:54px;background:repeating-linear-gradient(90deg,#111 0 2px,#fff 2px 3px,#111 3px 4px,#fff 4px 7px,#111 7px 8px,#fff 8px 9px)}
+.chip-ok{color:var(--ok)}.chip-bad{color:var(--bad)}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.88rem;z-index:60;max-width:calc(100% - 32px);text-align:center}
 footer{border-top:1px solid var(--line);color:var(--muted);font-size:.82rem}
 footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between}
@@ -312,12 +343,24 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;gap:8px 20px;justify
       <button type="button" role="tab" data-tab="pedidos" aria-selected="true">Pedidos</button>
       <button type="button" role="tab" data-tab="produtos" aria-selected="false">Produtos</button>
       <button type="button" role="tab" data-tab="novo" aria-selected="false">Novo produto</button>
+      <button type="button" role="tab" data-tab="pag" aria-selected="false">Pagamentos</button>
+      <button type="button" role="tab" data-tab="cli" aria-selected="false">Clientes</button>
+      <button type="button" role="tab" data-tab="promo" aria-selected="false">Promoções</button>
+      <button type="button" role="tab" data-tab="rel" aria-selected="false">Relatórios</button>
+      <button type="button" role="tab" data-tab="avisos" aria-selected="false">Avisos no WhatsApp</button>
+      <button type="button" role="tab" data-tab="ml" aria-selected="false">Mercado Livre</button>
     </div>
     <div id="tPedidos">
       <div class="filters chips" id="oFilter"></div>
       <div class="orders" id="orders"></div>
     </div>
-    <div id="tProdutos" hidden><div class="plist" id="plist"></div></div>
+    <div id="tProdutos" hidden>
+      <div class="pbar" role="group" aria-label="Editar vários produtos de uma vez"><b style="font-size:.86rem">Editar em lote:</b>
+        <select class="inp" id="bCat" aria-label="Categoria"></select>
+        <select class="inp" id="bAct" aria-label="O que fazer"><option value="up">Aumentar preço</option><option value="down">Baixar preço</option><option value="hide">Esconder da loja</option><option value="show">Mostrar na loja</option></select>
+        <input class="inp" id="bVal" inputmode="decimal" value="10" aria-label="Porcentagem" style="width:64px"><span class="note" id="bPct">%</span>
+        <button class="btn sm" type="button" id="bGo">Aplicar</button><span class="note" id="bInfo"></span></div>
+      <div class="plist" id="plist"></div></div>
     <form id="tNovo" class="form" hidden novalidate>
       <div class="fg"><span class="fl">Fotos</span>
         <div class="drop"><input id="nPics" type="file" accept="image/*" multiple aria-label="Escolher fotos do produto">Toque para escolher as fotos do produto (a primeira vira a capa)</div>
@@ -341,6 +384,12 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;gap:8px 20px;justify
       <label class="row" style="gap:10px"><input type="checkbox" id="nCustom" checked> Pedir um texto para personalizar (nome, data…)</label>
       <div class="row" style="justify-content:flex-end;flex-wrap:wrap"><button class="btn ghost" type="button" id="nPreview">Ver como fica na loja</button><button class="btn" type="submit">Publicar produto</button></div>
     </form>
+    <div id="tPag" hidden></div>
+    <div id="tCli" hidden></div>
+    <div id="tPromo" hidden></div>
+    <div id="tRel" hidden></div>
+    <div id="tAvisos" hidden></div>
+    <div id="tML" hidden></div>
   </section>
 </main>
 
@@ -350,6 +399,7 @@ footer .wrap{padding-block:22px;display:flex;flex-wrap:wrap;gap:8px 20px;justify
 <div class="sheet center" id="pSheet" role="dialog" aria-modal="true" aria-labelledby="pTitle" hidden></div>
 <div class="sheet right" id="cSheet" role="dialog" aria-modal="true" aria-labelledby="cTitle" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
+<div id="wapopBox" aria-live="polite"></div>
 
 <script>
 (function () {
@@ -405,7 +455,7 @@ const COLORS = { Branco: "#f4f6f8", Rosa: "#f6a6c8", Azul: "#5ab8f0", Lilás: "#
 let products = [];
 let orders = [];
 let nextOrder = 1043, nextProd = 13;
-const ST = { novo: "Novo · produzir", producao: "Em produção", enviado: "Enviado", entregue: "Entregue" };
+const ST = { novo: "Novo · produzir", producao: "Em produção", enviado: "Enviado", entregue: "Entregue", cancelado: "Cancelado · reembolsado" };
 
 let cat = "Todos", query = "", cart = [], pTab = "pedidos", oFilter = "todos", flashId = 0;
 const IMG = (im, big) => "https://http2.mlstatic.com/" + (big ? "D_NQ_NP_" + im + "-O.webp" : "D_Q_NP_2X_" + im + "-E.webp");
@@ -561,13 +611,15 @@ function renderCart() {
   if (!cart.length) { el.innerHTML = head("Carrinho") + `<div class="sh-b"><p class="empty">Seu carrinho está vazio.</p></div>`; el.querySelector(".x").onclick = closeSheets; return; }
   const items = cart.map((c, i) => { const p = products.find(x => x.id === c.id); return `<div class="ci">${thumbHTML(p)}<div><div class="nm">${esc(p.name)}</div><div class="meta">${esc([c.size, c.color].filter(Boolean).join(" · "))}${c.text ? " · “" + esc(c.text) + "”" : ""}</div>
     <div class="qty" style="margin-top:6px"><button type="button" data-i="${i}" data-d="-1" aria-label="Diminuir">−</button><span>${c.qty}</span><button type="button" data-i="${i}" data-d="1" aria-label="Aumentar">+</button></div></div><b class="mono">${brl(p.price * c.qty)}</b></div>`; }).join("");
-  let opts = freightFor(ckCep || "", cartKg()); 
+  let opts = freightFor(ckCep || "", cartKg());
+  if (opts && promo.freeOn && sub >= promo.freeOver) opts = opts.map(o => o.id === "PAC" ? Object.assign({}, o, { price: 0, label: "PAC · Frete grátis" }) : o);
   if (ckStep === "cart") {
     el.innerHTML = head("Carrinho") + `<div class="sh-b">${items}
       <div class="opt"><label for="cCep">Calcular frete e prazo</label><div class="row"><input class="inp" id="cCep" inputmode="numeric" maxlength="9" placeholder="00000-000" value="${esc(ckCep)}" autocomplete="postal-code"><button class="btn ghost sm" type="button" id="cCepBtn">Calcular</button></div>
       <div class="ship" id="cShip">${placeLine(ckCep)}${opts ? shipRows(opts, ckShip, "ship") + `<span class="note">Caixa com ${cart.reduce((a, c) => a + c.qty, 0)} ${cart.reduce((a, c) => a + c.qty, 0) === 1 ? "item" : "itens"} · cerca de ${cartKg().toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg. Prazo = produção (até ${PROD_DAYS} dias úteis) + transporte. Valores de exemplo; na loja de verdade vêm do Melhor Envio.</span>` : ""}</div></div></div>
       <div class="sh-f"><div class="sum"><div><span>Produtos</span><span>${brl(sub)}</span></div><div><span>Frete${ckShip && opts ? " · " + esc(opts.find(o => o.id === ckShip).label) : ""}</span><span>${ckShip && opts ? (opts.find(o => o.id === ckShip).price ? brl(opts.find(o => o.id === ckShip).price) : "Grátis") : "—"}</span></div>${ckShip && opts ? `<div><span class="note">Entrega</span><span class="note">${esc(opts.find(o => o.id === ckShip).eta)}</span></div>` : ""}
       <div class="tot"><span>Total</span><span>${brl(sub + (ckShip && opts ? opts.find(o => o.id === ckShip).price : 0))}</span></div></div>
+      ${promo.freeOn ? (sub >= promo.freeOver ? '<span class="note chip-ok" style="text-align:center">Você ganhou frete grátis no PAC.</span>' : `<span class="note" style="text-align:center">Faltam ${brl(promo.freeOver - sub)} para frete grátis no PAC.</span>`) : ""}
       <button class="btn" type="button" id="cNext" ${ckShip ? "" : "disabled"}>Continuar para o pagamento</button>${ckShip ? "" : '<span class="note" style="text-align:center">Calcule e escolha o frete para continuar.</span>'}</div>`;
     el.querySelector(".x").onclick = closeSheets;
     el.querySelectorAll(".qty button").forEach(b => b.onclick = () => { const c = cart[+b.dataset.i]; c.qty += +b.dataset.d; if (c.qty < 1) cart.splice(+b.dataset.i, 1); renderCartN(); renderCart(); });
@@ -579,7 +631,8 @@ function renderCart() {
     $("cNext").onclick = () => { ckStep = "pay"; renderCart(); };
     return;
   }
-  const fr = opts.find(o => o.id === ckShip).price, total = sub + fr, pixTotal = sub * .95 + fr;
+  const cp = ckCoupon ? coupons.find(c => c.code === ckCoupon && c.on) : null, disc = cp ? (cp.type === "pct" ? sub * cp.val / 100 : Math.min(sub, cp.val)) : 0;
+  const fr = opts.find(o => o.id === ckShip).price, total = sub - disc + fr, pixTotal = (sub - disc) * .95 + fr;
   el.innerHTML = head("Pagamento") + `<div class="sh-b">
     <div class="fg"><label class="fl" for="kName">Nome</label><input class="inp" id="kName" value="Cliente Exemplo"></div>
     <div class="fg"><label class="fl" for="kMail">E-mail</label><input class="inp" id="kMail" type="email" value="cliente@exemplo.com"></div>
@@ -587,20 +640,151 @@ function renderCart() {
     <div class="fg"><span class="fl">Forma de pagamento</span><div class="pay" id="kPay">
       <button type="button" data-p="pix" aria-pressed="${ckPay === "pix"}"><b>Pix</b><small>${brl(pixTotal)} · 5% off</small></button>
       <button type="button" data-p="card" aria-pressed="${ckPay === "card"}"><b>Cartão</b><small>até 3x de ${brl(total / 3)}</small></button></div>
-      <span class="note">Na loja de verdade, o pagamento abre a tela segura do Mercado Pago. Aqui é só simulação.</span></div></div>
-    <div class="sh-f"><div class="sum"><div><span>Produtos</span><span>${brl(ckPay === "pix" ? sub * .95 : sub)}</span></div><div><span>Frete · ${esc(opts.find(o => o.id === ckShip).label)}</span><span>${fr ? brl(fr) : "Grátis"}</span></div><div><span class="note">Entrega</span><span class="note">${esc(opts.find(o => o.id === ckShip).eta)}</span></div><div class="tot"><span>Total</span><span>${brl(ckPay === "pix" ? pixTotal : total)}</span></div></div>
+      <span class="note">Na loja de verdade, o pagamento abre a tela segura do Mercado Pago. Aqui é só simulação.</span></div>
+    <div class="fg"><label class="fl" for="kCup">Cupom de desconto</label><div class="row"><input class="inp" id="kCup" placeholder="Ex.: BEMVINDO10" value="${esc(ckCoupon)}" style="text-transform:uppercase"><button class="btn ghost sm" type="button" id="kCupBtn">Aplicar</button></div>${cp ? `<span class="note chip-ok">Cupom ${esc(cp.code)} aplicado: −${brl(disc)}</span>` : (ckCoupon ? '<span class="note chip-bad">Cupom não encontrado ou desativado.</span>' : "")}</div></div>
+    <div class="sh-f"><div class="sum"><div><span>Produtos</span><span>${brl(ckPay === "pix" ? (sub - disc) * .95 : sub - disc)}</span></div><div><span>Frete · ${esc(opts.find(o => o.id === ckShip).label)}</span><span>${fr ? brl(fr) : "Grátis"}</span></div><div><span class="note">Entrega</span><span class="note">${esc(opts.find(o => o.id === ckShip).eta)}</span></div><div class="tot"><span>Total</span><span>${brl(ckPay === "pix" ? pixTotal : total)}</span></div></div>
       <div class="row"><button class="btn ghost" type="button" id="kBack">Voltar</button><button class="btn" type="button" id="kGo" style="flex:1">Finalizar pedido (simulação)</button></div></div>`;
   el.querySelector(".x").onclick = closeSheets;
   el.querySelectorAll("#kPay button").forEach(b => b.onclick = () => { ckPay = b.dataset.p; renderCart(); });
   $("kBack").onclick = () => { ckStep = "cart"; renderCart(); };
+  $("kCupBtn").onclick = () => { ckCoupon = $("kCup").value.trim().toUpperCase(); renderCart(); };
   $("kGo").onclick = () => {
     const nm = $("kName").value.trim() || "Cliente";
-    orders.unshift({ id: nextOrder++, name: nm, city: "CEP " + ckCep, when: "agora", status: "novo", pay: ckPay === "pix" ? "Pix" : "Cartão", ship: ckShip,
-      items: cart.map(c => { const p = products.find(x => x.id === c.id); return [p.name, [c.size, c.color].filter(Boolean).join(" · ") || "Padrão", c.qty, ckPay === "pix" ? p.price * .95 : p.price]; }), freight: fr,
-      note: cart.filter(c => c.text).map(c => "Texto: " + c.text).join(" · ") });
+    const ci = cepInfo[cepDigits(ckCep)] || {}, k = (sub - disc) / (sub || 1) * (ckPay === "pix" ? .95 : 1);
+    const no = { id: nextOrder++, name: nm, city: ci.city ? ci.city + ", " + ci.uf : "CEP " + ckCep, uf: ci.uf || "", when: "agora", status: "novo", pay: ckPay === "pix" ? "Pix" : "Cartão", ship: opts.find(o => o.id === ckShip).label.split(" ·")[0], kg: cartKg(),
+      items: cart.map(c => { const p = products.find(x => x.id === c.id); return [p.name, [c.size, c.color].filter(Boolean).join(" · ") || "Padrão", c.qty, p.price * k]; }), freight: fr,
+      note: [cart.filter(c => c.text).map(c => "Texto: " + c.text).join(" · "), cp ? "Cupom " + cp.code : ""].filter(Boolean).join(" · ") };
+    orders.unshift(no); if (cp) cp.uses++; ckCoupon = "";
+    const tot = no.items.reduce((a, it) => a + it[2] * it[3], 0) + no.freight;
+    waNotify("novo", `🛒 *Pedido novo #${no.id}*\n${no.name} · ${no.city}\n${no.items.map(it => it[2] + "× " + it[0]).join("\n")}\n*Total ${brl(tot)}* · ${no.pay} aprovado\nFrete: ${no.ship}`);
     cart.forEach(c => { const p = products.find(x => x.id === c.id); p.sold += c.qty; if (p.stock !== "enc") p.stock = Math.max(0, p.stock - c.qty); });
     cart = []; ckShip = null; renderCartN(); flashId = nextOrder - 1; renderPanel(); renderGrid(); ckStep = "done"; renderCart(); confetti(); };
 }
+
+// ---------- painel: dados extras ----------
+let ckCoupon = "";
+const promo = { freeOn: false, freeOver: 150 };
+const coupons = [{ code: "BEMVINDO10", type: "pct", val: 10, on: true, uses: 4, until: "31/12" }, { code: "BROWNIE15", type: "brl", val: 15, on: false, uses: 0, until: "30/11" }];
+const wa = { phone: "(44) 9 0000-0000", on: { novo: true, reemb: true, parado: true, resumo: true }, msgs: [] };
+const mlSync = { on: true, last: "hoje, 06:00", orders: true };
+const nowHM = () => new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+function waNotify(kind, text) {
+  if (!wa.on[kind]) return;
+  wa.msgs.push({ text, t: nowHM() });
+  if (!$("tAvisos").hidden) renderAvisos();
+  const box = $("wapopBox"), el = document.createElement("div"); el.className = "wapop"; el.setAttribute("role", "status");
+  el.innerHTML = `<span class="ic">W</span><div><b>WhatsApp · OnLab3D Avisos</b><p></p></div>`; el.querySelector("p").textContent = text.replace(/\*/g, "");
+  el.onclick = () => { el.remove(); setView("painel"); setPTab("avisos"); };
+  box.textContent = ""; box.appendChild(el); setTimeout(() => el.remove(), 6000);
+}
+const labelCost = (o) => { const f = freightFor("87140000", o.kg || .4); return o.freight || (f ? f[0].price : 19.9); };
+function openLabel(o, view) {
+  const el = $("pSheet");
+  const body = `<div class="label"><div><b>REMETENTE</b><br>OnLab Brindes · Igor Souza<br>Paiçandu – PR · 87140-000</div><div><b>DESTINATÁRIO</b><br>${esc(o.name)}<br>${esc(o.city)}</div>
+    <div class="barcode" aria-hidden="true"></div><div style="display:flex;justify-content:space-between"><span>${esc(o.ship)}</span><b>${esc(o.track || "AN" + String(o.id).padStart(9, "7") + "BR")}</b></div><div>Pedido #${o.id} · ${(o.kg || .4).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg</div></div>`;
+  el.innerHTML = `<div class="sh-h"><h3 id="pTitle">${view ? "Etiqueta do pedido #" + o.id : "Gerar etiqueta · pedido #" + o.id}</h3><button class="x" type="button" aria-label="Fechar">×</button></div>
+    <div class="sh-b">${view ? "" : `<p class="note">O cliente escolheu <b>${esc(o.ship)}</b>. A etiqueta é comprada no Melhor Envio com o saldo da conta do Igor, e o código de rastreio entra sozinho no pedido.</p>`}${body}
+    ${view ? '<p class="note">Na loja de verdade, o botão abaixo baixa o PDF da etiqueta para imprimir.</p>' : ""}</div>
+    <div class="sh-f">${view ? '<button class="btn ghost" type="button" id="lbClose">Fechar</button>' : `<button class="btn" type="button" id="lbGo">Pagar ${brl(labelCost(o))} e gerar etiqueta (simulação)</button>`}</div>`;
+  el.querySelector(".x").onclick = closeSheets;
+  if (view) $("lbClose").onclick = closeSheets;
+  else $("lbGo").onclick = () => { o.track = "AN" + String(o.id).padStart(9, "7") + "BR"; o.status = "enviado"; o.label = true; flashId = o.id;
+    toast(`Etiqueta gerada. Pedido #${o.id} enviado e o cliente recebeu o rastreio.`); closeSheets(); renderPanel(); };
+  openSheet(el);
+}
+function orderTotal(o) { return o.items.reduce((a, it) => a + it[2] * it[3], 0) + o.freight; }
+function renderPag() {
+  const fee = (o) => orderTotal(o) * (o.pay === "Pix" ? .0099 : .0498);
+  const rows = orders.map(o => { const t = orderTotal(o), f = fee(o), rf = o.status === "cancelado";
+    return `<tr><td><b class="mono">#${o.id}</b><br><span class="note">${esc(o.when)}</span></td><td>${esc(o.name)}</td><td>${esc(o.pay)}</td><td class="r">${brl(t)}</td><td class="r note">−${brl(f)}</td><td class="r"><b>${brl(rf ? 0 : t - f)}</b></td>
+      <td>${rf ? '<span class="chip-bad">Reembolsado</span>' : '<span class="chip-ok">Aprovado</span>'}</td><td>${rf || o.status === "entregue" ? "" : `<button class="btn ghost sm" type="button" data-rf="${o.id}">Reembolsar</button>`}</td></tr>`; }).join("");
+  const ok = orders.filter(o => o.status !== "cancelado"), gross = ok.reduce((a, o) => a + orderTotal(o), 0), fees = ok.reduce((a, o) => a + fee(o), 0);
+  $("tPag").innerHTML = `<div class="tiles" style="margin-top:0"><div class="tile"><small>Recebido</small><b>${brl(gross)}</b></div><div class="tile"><small>Taxas (exemplo)</small><b>${brl(fees)}</b></div><div class="tile"><small>Líquido</small><b>${brl(gross - fees)}</b></div><div class="tile"><small>Reembolsos</small><b>${orders.filter(o => o.status === "cancelado").length}</b></div></div>
+    <div class="scrollx"><table class="tbl"><thead><tr><th>Pedido</th><th>Cliente</th><th>Forma</th><th class="r">Valor</th><th class="r">Taxa</th><th class="r">Líquido</th><th>Situação</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  $("tPag").querySelectorAll("[data-rf]").forEach(b => b.onclick = () => {
+    if (b.dataset.arm !== "1") { b.dataset.arm = "1"; b.textContent = "Confirmar reembolso"; b.classList.remove("ghost"); setTimeout(() => { if (b.isConnected) { b.dataset.arm = ""; b.textContent = "Reembolsar"; b.classList.add("ghost"); } }, 4000); return; }
+    const o = orders.find(x => x.id === +b.dataset.rf); o.status = "cancelado"; toast(`Pedido #${o.id} reembolsado. O dinheiro volta para o cliente pelo Mercado Pago.`);
+    waNotify("reemb", `↩️ *Reembolso feito* · pedido #${o.id}\n${o.name} · ${brl(orderTotal(o))}`); renderPanel(); renderPag(); });
+}
+function renderCli() {
+  const m = new Map(); for (const o of orders) { if (o.status === "cancelado") continue; const c = m.get(o.name) || { name: o.name, city: o.city, n: 0, tot: 0, last: o.when }; c.n++; c.tot += orderTotal(o); m.set(o.name, c); }
+  const list = [...m.values()].sort((a, b) => b.tot - a.tot);
+  $("tCli").innerHTML = `<div class="scrollx"><table class="tbl"><thead><tr><th>Cliente</th><th>Cidade</th><th class="r">Pedidos</th><th class="r">Total gasto</th><th>Último pedido</th></tr></thead><tbody>${list.map(c => `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.city)}</td><td class="r">${c.n}</td><td class="r">${brl(c.tot)}</td><td class="note">${esc(c.last)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function renderPromo() {
+  $("tPromo").innerHTML = `<div class="cards2"><div class="box"><h3>Frete grátis acima de um valor</h3>
+      <label class="tg">Ligado<span class="sw"><input type="checkbox" id="fgOn" ${promo.freeOn ? "checked" : ""} aria-label="Frete grátis ligado"><span></span></span></label>
+      <div class="row"><span class="note">Compras a partir de</span><input class="inp" id="fgVal" inputmode="decimal" value="${String(promo.freeOver).replace(".", ",")}" style="width:100px"><span class="note">no PAC</span></div>
+      <p class="note">Na loja, o carrinho mostra quanto falta para ganhar. O custo do frete fica com o Igor.</p></div>
+    <div class="box"><h3>Cupons de desconto</h3>
+      ${coupons.map((c, i) => `<div class="tg"><span><b class="mono">${esc(c.code)}</b> · ${c.type === "pct" ? c.val + "%" : brl(c.val)} · até ${esc(c.until)} · ${c.uses} usos</span><span class="sw"><input type="checkbox" data-cp="${i}" ${c.on ? "checked" : ""} aria-label="Cupom ${esc(c.code)} ativo"><span></span></span></div>`).join("")}
+      <div class="row" style="flex-wrap:wrap"><input class="inp" id="cpCode" placeholder="CÓDIGO" style="width:120px;text-transform:uppercase"><select class="inp" id="cpType" style="width:auto"><option value="pct">%</option><option value="brl">R$</option></select><input class="inp" id="cpVal" inputmode="decimal" placeholder="10" style="width:70px"><button class="btn sm" type="button" id="cpAdd">Criar cupom</button></div>
+      <p class="note">O cliente digita o cupom na tela de pagamento. Teste com BEMVINDO10.</p></div></div>`;
+  $("fgOn").onchange = (e) => { promo.freeOn = e.target.checked; toast(promo.freeOn ? "Frete grátis ligado." : "Frete grátis desligado."); };
+  $("fgVal").onchange = (e) => { const v = parseFloat(e.target.value.replace(/\./g, "").replace(",", ".")); if (v > 0) promo.freeOver = v; };
+  $("tPromo").querySelectorAll("[data-cp]").forEach(i => i.onchange = () => { coupons[+i.dataset.cp].on = i.checked; });
+  $("cpAdd").onclick = () => { const code = $("cpCode").value.trim().toUpperCase().replace(/\s+/g, ""), val = parseFloat(($("cpVal").value || "").replace(",", "."));
+    if (!code || !(val > 0)) { toast("Preencha o código e o valor do cupom."); return; }
+    if (coupons.some(c => c.code === code)) { toast("Esse cupom já existe."); return; }
+    coupons.push({ code, type: $("cpType").value, val, on: true, uses: 0, until: "sem prazo" }); toast("Cupom " + code + " criado."); renderPromo(); };
+}
+function renderRel() {
+  const months = [["Jun", 1840], ["Jul", 2310], ["Ago", 2980], ["Set", 2620], ["Out", 3450], ["Nov", 1200 + orders.filter(o => o.status !== "cancelado").reduce((a, o) => a + orderTotal(o), 0)]];
+  const mx = Math.max(...months.map(m => m[1]));
+  const cnt = new Map(); for (const o of orders) for (const it of o.items) cnt.set(it[0], (cnt.get(it[0]) || 0) + it[2]);
+  const base = [[products[0] && products[0].name, 41], [products[1] && products[1].name, 33], [products[3] && products[3].name, 27], [products[5] && products[5].name, 19], [products[9] && products[9].name, 14]];
+  for (const b of base) if (b[0]) cnt.set(b[0], (cnt.get(b[0]) || 0) + b[1]);
+  const top = [...cnt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5), tmx = top.length ? top[0][1] : 1;
+  const st = [["PR", 31], ["SP", 27], ["SC", 12], ["MG", 9], ["RS", 8], ["RJ", 6], ["Outros", 7]], smx = 31;
+  const bars = (rows, mxv, fmt) => `<div class="bars">${rows.map((r, i) => `<div class="bar"><span title="${esc(r[0])}">${esc(r[0])}</span><i style="width:${Math.max(3, r[1] / mxv * 100)}%;animation-delay:${i * 60}ms"></i><b class="mono">${fmt(r[1])}</b></div>`).join("")}</div>`;
+  $("tRel").innerHTML = `<div class="cards2"><div class="box"><h3>Vendas por mês</h3>${bars(months, mx, brl)}<p class="note">Valores de exemplo, com os pedidos desta prévia somados em novembro.</p></div>
+    <div class="box"><h3>Mais vendidos</h3>${bars(top.map(t => [t[0].length > 34 ? t[0].slice(0, 34) + "…" : t[0], t[1]]), tmx, v => v + " un")}</div>
+    <div class="box"><h3>Vendas por estado</h3>${bars(st, smx, v => v + "%")}<p class="note">Ajuda a decidir onde vale frete grátis.</p></div></div>`;
+}
+function renderAvisos() {
+  const T = [["novo", "Pedido novo (com itens, total e frete)"], ["reemb", "Reembolso ou cancelamento"], ["parado", "Pedido parado há mais de 2 dias"], ["resumo", "Resumo do dia, às 20h"]];
+  $("tAvisos").innerHTML = `<div class="cards2"><div class="box"><h3>Avisos para o Igor no WhatsApp</h3>
+      <div class="fg"><label class="fl" for="waPhone">Número que recebe</label><input class="inp" id="waPhone" inputmode="tel" value="${esc(wa.phone)}"></div>
+      ${T.map(t => `<label class="tg">${t[1]}<span class="sw"><input type="checkbox" data-wa="${t[0]}" ${wa.on[t[0]] ? "checked" : ""} aria-label="${esc(t[1])}"><span></span></span></label>`).join("")}
+      <div class="row" style="flex-wrap:wrap"><button class="btn sm" type="button" id="waTest">Enviar teste</button><button class="btn ghost sm" type="button" id="waLate">Simular pedido parado</button><button class="btn ghost sm" type="button" id="waDay">Ver resumo de hoje</button></div>
+      <p class="note">Faça um pedido na loja (aba Loja) e veja o aviso chegar aqui. No site de verdade, os avisos saem por um número de WhatsApp Business ligado à loja.</p>
+      <h3 style="margin-top:6px">Mensagens que o cliente recebe</h3>
+      <p class="note">Pedido confirmado · Em produção · Enviado com o código de rastreio · Entregue. Por e-mail e, se o cliente quiser, por WhatsApp.</p></div>
+    <div class="box" style="background:none;border:0;padding:0"><div class="wa"><div class="wa-h"><img src="../icon-192.png?v=2" alt=""><div><b>OnLab3D Avisos</b><small>conta comercial</small></div></div>
+      <div class="wa-b" id="waBody">${wa.msgs.length ? wa.msgs.map(m => `<div class="msg">${esc(m.text).replace(/\*([^*]+)\*/g, "<b>$1</b>")}<small>${m.t} ✓✓</small></div>`).join("") : '<p class="note" style="color:#8696a0;text-align:center;margin:auto">Os avisos aparecem aqui.</p>'}</div></div></div></div>`;
+  const b = $("waBody"); b.scrollTop = b.scrollHeight;
+  $("waPhone").onchange = (e) => { wa.phone = e.target.value; };
+  $("tAvisos").querySelectorAll("[data-wa]").forEach(i => i.onchange = () => { wa.on[i.dataset.wa] = i.checked; });
+  $("waTest").onclick = () => { const was = wa.on.novo; wa.on.novo = true; waNotify("novo", "✅ *Teste* · os avisos da loja estão chegando neste número."); wa.on.novo = was; renderAvisos(); };
+  $("waLate").onclick = () => { const o = orders.find(x => x.status === "novo" || x.status === "producao"); if (!o) { toast("Não tem pedido em aberto."); return; } waNotify("parado", `⏰ *Pedido #${o.id} parado há 2 dias*\n${o.name} · ${ST[o.status]}\nPrazo de produção: ${PROD_DAYS} dias úteis`); renderAvisos(); };
+  $("waDay").onclick = () => { const c = (s) => orders.filter(o => o.status === s).length; waNotify("resumo", `📊 *Resumo de hoje*\nPedidos novos: ${c("novo")}\nEm produção: ${c("producao")}\nEnviados: ${c("enviado")}\nVendido: ${brl(orders.filter(o => o.status !== "cancelado").reduce((a, o) => a + orderTotal(o), 0))}`); renderAvisos(); };
+}
+function renderML() {
+  $("tML").innerHTML = `<div class="cards2"><div class="box"><h3>Mercado Livre · ONLABBRINDES</h3>
+      <label class="tg">Manter preço e estoque iguais nos dois<span class="sw"><input type="checkbox" id="mlOn" ${mlSync.on ? "checked" : ""} aria-label="Sincronizar preço e estoque"><span></span></span></label>
+      <label class="tg">Pedidos do Mercado Livre também aparecem aqui<span class="sw"><input type="checkbox" id="mlOrd" ${mlSync.orders ? "checked" : ""} aria-label="Receber pedidos do Mercado Livre"><span></span></span></label>
+      <p class="note">Última sincronização: <b id="mlLast">${esc(mlSync.last)}</b> · ${products.length.toLocaleString("pt-BR")} anúncios ligados</p>
+      <div class="row"><button class="btn sm" type="button" id="mlGo">Sincronizar agora</button><span class="note" id="mlInfo"></span></div>
+      <p class="note">Na loja de verdade, a ligação com o Mercado Livre é autorizada pelo Igor numa tela do próprio Mercado Livre, ou feita por um sistema de gestão como o Bling.</p></div></div>`;
+  $("mlOn").onchange = (e) => { mlSync.on = e.target.checked; };
+  $("mlOrd").onchange = (e) => { mlSync.orders = e.target.checked; };
+  $("mlGo").onclick = () => { const b = $("mlGo"); b.disabled = true; let k = 0; const n = products.length;
+    const tick = () => { k = Math.min(n, k + Math.ceil(n / 25)); $("mlInfo").textContent = `Conferindo ${k.toLocaleString("pt-BR")} de ${n.toLocaleString("pt-BR")}…`;
+      if (k < n) setTimeout(tick, 60); else { mlSync.last = "hoje, " + nowHM(); $("mlLast").textContent = mlSync.last; $("mlInfo").textContent = "Tudo igual. Nenhuma mudança de preço ou estoque."; b.disabled = false; } };
+    tick(); };
+}
+// lote
+function fillBulk() { $("bCat").innerHTML = CATS.map(c => `<option value="${esc(c)}">${c === "Todos" ? "Todas as categorias" : esc(c)}</option>`).join(""); }
+$("bAct").onchange = () => { const pct = ["up", "down"].includes($("bAct").value); $("bVal").hidden = !pct; $("bPct").hidden = !pct; };
+$("bGo").onclick = () => {
+  const c = $("bCat").value, act = $("bAct").value, v = parseFloat(($("bVal").value || "0").replace(",", ".")) || 0;
+  const list = products.filter(p => c === "Todos" || p.cat === c);
+  if (act === "up" || act === "down") { if (!(v > 0 && v < 90)) { toast("Use uma porcentagem entre 1 e 89."); return; }
+    list.forEach(p => { p.price = Math.round(p.price * (act === "up" ? 1 + v / 100 : 1 - v / 100) * 100) / 100; }); }
+  else list.forEach(p => p.active = act === "show");
+  $("bInfo").textContent = `${list.length.toLocaleString("pt-BR")} produtos atualizados.`;
+  toast(`${list.length.toLocaleString("pt-BR")} produtos atualizados.`); renderCats(); renderGrid(); renderProducts();
+};
 
 // ---------- painel ----------
 function renderTiles() {
@@ -619,8 +803,9 @@ function renderOrders() {
     const tot = o.items.reduce((a, it) => a + it[2] * it[3], 0) + o.freight;
     let act = "";
     if (o.status === "novo") act = `<button class="btn sm" type="button" data-a="prod" data-id="${o.id}">Começar a produzir</button><span class="note">Imprimir e embalar</span>`;
-    else if (o.status === "producao") act = `<input class="inp" id="tr${o.id}" placeholder="Código de rastreio" aria-label="Código de rastreio do pedido ${o.id}" value="AN${String(o.id).padStart(9, "4")}BR"><button class="btn sm" type="button" data-a="ship" data-id="${o.id}">Marcar como enviado</button>`;
-    else if (o.status === "enviado") act = `<span class="note">Rastreio <span class="mono">${esc(o.track)}</span> · cliente avisado por e-mail</span><button class="btn ghost sm" type="button" data-a="deliv" data-id="${o.id}">Marcar entregue</button>`;
+    else if (o.status === "producao") act = `<button class="btn sm" type="button" data-a="label" data-id="${o.id}">Gerar etiqueta de envio</button><span class="note">${esc(o.ship)} pelo Melhor Envio · ${brl(labelCost(o))}</span>`;
+    else if (o.status === "enviado") act = `<span class="note">Rastreio <span class="mono">${esc(o.track)}</span> · cliente avisado por e-mail e WhatsApp</span><button class="btn ghost sm" type="button" data-a="see" data-id="${o.id}">Ver etiqueta</button><button class="btn ghost sm" type="button" data-a="deliv" data-id="${o.id}">Marcar entregue</button>`;
+    else if (o.status === "cancelado") act = `<span class="note chip-bad">Pagamento devolvido ao cliente</span>`;
     else act = `<span class="note">Entregue · rastreio <span class="mono">${esc(o.track || "")}</span></span>`;
     return `<article class="order${o.id === flashId ? " flash" : ""}" data-st="${o.status}" style="--i:${oi}"><div class="o-top"><b>#${o.id}</b><span class="pill">${ST[o.status]}</span><span class="when">${esc(o.when)}</span></div>
       <div class="o-items">${o.items.map(it => `<div>${it[2]}× ${esc(it[0])} <span>· ${esc(it[1])}</span></div>`).join("")}${o.note ? `<div><span>${esc(o.note)}</span></div>` : ""}</div>
@@ -631,6 +816,8 @@ function renderOrders() {
     if (b.dataset.a === "prod") { o.status = "producao"; toast(`Pedido #${o.id} em produção. O cliente recebe um e-mail.`); }
     if (b.dataset.a === "ship") { const v = $("tr" + o.id).value.trim(); if (!v) { $("tr" + o.id).focus(); toast("Coloque o código de rastreio."); return; } o.track = v; o.status = "enviado"; toast(`Pedido #${o.id} enviado. O cliente recebe o rastreio por e-mail.`); }
     if (b.dataset.a === "deliv") { o.status = "entregue"; toast(`Pedido #${o.id} entregue.`); }
+    if (b.dataset.a === "label") { openLabel(o, false); return; }
+    if (b.dataset.a === "see") { openLabel(o, true); return; }
     flashId = o.id; renderPanel(); });
 }
 let pShown = 40;
@@ -646,6 +833,8 @@ function setPTab(t) {
   pTab = t;
   document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
   $("tPedidos").hidden = t !== "pedidos"; $("tProdutos").hidden = t !== "produtos"; $("tNovo").hidden = t !== "novo";
+  const X = { pag: ["tPag", renderPag], cli: ["tCli", renderCli], promo: ["tPromo", renderPromo], rel: ["tRel", renderRel], avisos: ["tAvisos", renderAvisos], ml: ["tML", renderML] };
+  for (const k in X) { $(X[k][0]).hidden = k !== t; if (k === t) X[k][1](); }
 }
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setPTab(b.dataset.tab));
 $("goNew").onclick = () => { setPTab("novo"); $("nName").focus(); };
@@ -734,8 +923,11 @@ fetch("produtos.json").then(r => r.json()).then(d => {
     { id: 1039, name: "Carla F.", city: "Curitiba, PR", when: "ontem, 17:40", status: "producao", pay: "Pix", ship: "PAC", items: [[pick(7).name, "Padrão", 1, pick(7).price]], freight: 19.9, note: "" },
     { id: 1036, name: "Ateliê Biscoitê", city: "Niterói, RJ", when: "seg, 11:20", status: "enviado", pay: "Pix", ship: "SEDEX", items: [[pick(21).name, "Padrão", 3, pick(21).price]], freight: 34.1, track: "AN123456789BR", note: "" },
     { id: 1031, name: "Marcos P.", city: "Ribeirão Preto, SP", when: "12 nov", status: "entregue", pay: "Cartão", ship: "PAC", items: [[pick(37).name, "Padrão", 4, pick(37).price]], freight: 18.9, track: "AN987654321BR", note: "" }];
+  orders.forEach(o => { o.kg = o.kg || .35; });
+  wa.msgs.push({ text: "🛒 *Pedido novo #1041*\nDoces da Rô · Belo Horizonte, MG\n*Total " + brl(orderTotal(orders[1])) + "* · Cartão 3x aprovado\nFrete: SEDEX", t: "08:02" },
+               { text: "🛒 *Pedido novo #1042*\nJuliana M. · Campinas, SP\n*Total " + brl(orderTotal(orders[0])) + "* · Pix aprovado\nFrete: PAC", t: "09:14" });
   $("fN").textContent = products.length.toLocaleString("pt-BR") + " modelos";
-  fillCatSelect(); renderCats(); renderGrid(); renderPanel();
+  fillCatSelect(); fillBulk(); renderCats(); renderGrid(); renderPanel();
 }).catch(() => { $("grid").innerHTML = '<p class="empty">Não consegui carregar os produtos. Recarregue a página.</p>'; });
 setView(location.hash.slice(1) === "painel" ? "painel" : "loja");
 })();
