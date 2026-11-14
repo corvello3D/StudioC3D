@@ -436,7 +436,7 @@ function renderGrid() {
   $("grid").innerHTML = page.length ? page.map((p, i) => `<button type="button" class="card" data-id="${p.id}" style="--i:${i % 48}">
       <div style="position:relative">${thumbHTML(p)}${pct(p) >= 30 ? `<span class="tag hot">${pct(p)}% OFF</span>` : ""}</div>
       <div class="info"><span class="nm">${esc(p.name)}</span>
-      <span class="price">${p.old > p.price ? `<span class="old">${brl(p.old)}</span>` : ""}${brl(p.price)}<small>${p.fs ? '<span class="fs">Frete grátis</span> · ' : ""}5% off no Pix</small></span></div></button>`).join("")
+      <span class="price">${p.old > p.price ? `<span class="old">${brl(p.old)}</span>` : ""}${brl(p.price)}<small>5% off no Pix</small></span></div></button>`).join("")
     : `<p class="empty">Nenhum produto encontrado. Tente outra palavra ou categoria.</p>`;
   $("grid").querySelectorAll(".card").forEach(b => b.onclick = () => openProduct(+b.dataset.id));
   $("more").hidden = list.length <= shown; $("more").textContent = `Ver mais produtos (${(list.length - shown).toLocaleString("pt-BR")} restantes)`;
@@ -452,9 +452,9 @@ $("scrim").onclick = closeSheets;
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheets(); });
 
 // ---------- frete (simulado): região pelo CEP, peso da caixa, prazo = produção + transporte ----------
-const PROD_DAYS = 3, ORIGIN = "São Paulo – SP";
+const PROD_DAYS = 3, ORIGIN = "Paiçandu – PR"; // CEP de envio 87140-000
 const KG = { "Cortadores de brownie": .16, "Cortadores de biscoito": .09, "Carimbos": .07, "Ejetores": .05, "Chaveiros e lembrancinhas": .04, "Casa e utilidades": .12 };
-const UF_REG = { SP: 0, RJ: 1, MG: 1, ES: 1, PR: 1, SC: 1, RS: 2, MS: 2, GO: 2, DF: 2, MT: 3, BA: 3, SE: 3, AL: 3, PE: 3, PB: 3, RN: 3, CE: 3, PI: 3, TO: 3, MA: 4, PA: 4, AP: 4, AM: 4, RR: 4, RO: 4, AC: 4 };
+const UF_REG = { PR: 0, SC: 1, SP: 1, RS: 1, MS: 1, RJ: 2, MG: 2, ES: 2, GO: 2, DF: 2, MT: 2, BA: 3, TO: 3, RO: 3, SE: 3, AL: 3, PE: 3, PB: 3, RN: 3, CE: 3, PI: 3, MA: 4, PA: 4, AP: 4, AM: 4, RR: 4, AC: 4 };
 const FIRST_UF = ["SP", "SP", "RJ", "MG", "BA", "PE", "CE", "DF", "PR", "RS"];
 const cepInfo = {};
 const cepDigits = (v) => String(v || "").replace(/\D/g, "").slice(0, 8);
@@ -492,7 +492,7 @@ function openProduct(id) {
     <div class="sh-b"><div class="pd">${thumbHTML(p, "", true)}
       <div style="display:grid;gap:14px;align-content:start">
         <h4>${esc(p.name)}</h4>
-        <div class="price" style="font-size:1.4rem">${p.old > p.price ? `<span class="old">${brl(p.old)}</span><span class="off">${pct(p)}% OFF</span><br>` : ""}${brl(p.price)}<small>ou 3x de ${brl(p.price / 3)} sem juros · ${brl(p.price * .95)} no Pix${p.fs ? ' · <span class="fs">Frete grátis</span>' : ""}</small></div>
+        <div class="price" style="font-size:1.4rem">${p.old > p.price ? `<span class="old">${brl(p.old)}</span><span class="off">${pct(p)}% OFF</span><br>` : ""}${brl(p.price)}<small>ou 3x de ${brl(p.price / 3)} sem juros · ${brl(p.price * .95)} no Pix</small></div>
         <p>${esc(p.desc || "Peça impressa em 3D em PLA, feita sob encomenda.")}</p>
         ${p.ml ? `<p class="note">Anúncio MLB${p.id} · <a href="https://produto.mercadolivre.com.br/MLB-${p.id}" target="_blank" rel="noopener" style="color:var(--accent)">ver no Mercado Livre</a></p>` : ""}
         ${(p.sizes || []).length ? `<div class="opt"><label>Tamanho</label><div class="chips" id="pSize">${p.sizes.map(s => `<button type="button" data-v="${esc(s)}" aria-pressed="${s === sel.size}">${esc(s)}</button>`).join("")}</div></div>` : ""}
@@ -508,7 +508,6 @@ function openProduct(id) {
   chips("pSize", "size"); chips("pColor", "color");
   const calc = async () => { const v = cepMask($("pCep").value); $("pCep").value = v; ckCep = v; if (cepDigits(v).length !== 8) { $("pShip").innerHTML = '<span class="note">Digite um CEP com 8 números.</span>'; return; }
     $("pShip").innerHTML = '<span class="note">Calculando…</span>'; await lookupCep(v); let f = freightFor(v, .12 + itemKg(p) * sel.qty);
-    if (f && p.fs) f = f.map(o => o.id === "PAC" ? Object.assign({}, o, { price: 0, label: "PAC · Frete grátis" }) : o);
     $("pShip").innerHTML = placeLine(v) + (f ? shipRows(f) + `<span class="note">Prazo = produção (até ${PROD_DAYS} dias úteis) + transporte. Valores de exemplo; na loja de verdade vêm do Melhor Envio.</span>` : ""); };
   $("pCep").addEventListener("input", () => { const v = cepMask($("pCep").value); $("pCep").value = v; if (cepDigits(v).length === 8) calc(); });
   if (cepDigits(ckCep).length === 8) setTimeout(calc, 0);
@@ -562,7 +561,7 @@ function renderCart() {
   if (!cart.length) { el.innerHTML = head("Carrinho") + `<div class="sh-b"><p class="empty">Seu carrinho está vazio.</p></div>`; el.querySelector(".x").onclick = closeSheets; return; }
   const items = cart.map((c, i) => { const p = products.find(x => x.id === c.id); return `<div class="ci">${thumbHTML(p)}<div><div class="nm">${esc(p.name)}</div><div class="meta">${esc([c.size, c.color].filter(Boolean).join(" · "))}${c.text ? " · “" + esc(c.text) + "”" : ""}</div>
     <div class="qty" style="margin-top:6px"><button type="button" data-i="${i}" data-d="-1" aria-label="Diminuir">−</button><span>${c.qty}</span><button type="button" data-i="${i}" data-d="1" aria-label="Aumentar">+</button></div></div><b class="mono">${brl(p.price * c.qty)}</b></div>`; }).join("");
-  let opts = freightFor(ckCep || "", cartKg()); if (opts && cart.length && cart.every(c => (products.find(x => x.id === c.id) || {}).fs)) opts = opts.map(o => o.id === "PAC" ? Object.assign({}, o, { price: 0, label: "PAC · Frete grátis" }) : o);
+  let opts = freightFor(ckCep || "", cartKg()); 
   if (ckStep === "cart") {
     el.innerHTML = head("Carrinho") + `<div class="sh-b">${items}
       <div class="opt"><label for="cCep">Calcular frete e prazo</label><div class="row"><input class="inp" id="cCep" inputmode="numeric" maxlength="9" placeholder="00000-000" value="${esc(ckCep)}" autocomplete="postal-code"><button class="btn ghost sm" type="button" id="cCepBtn">Calcular</button></div>
