@@ -451,12 +451,37 @@ function closeSheets() { $("scrim").hidden = true; $("pSheet").hidden = true; $(
 $("scrim").onclick = closeSheets;
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheets(); });
 
-function freightFor(cep) {
-  const d = cep.replace(/\D/g, ""); if (d.length !== 8) return null;
-  const r = +d[0]; const far = [5, 6, 7].includes(r) ? 1 : (r >= 4 ? .6 : .2);
-  return [{ id: "PAC", label: "PAC", days: Math.round(5 + far * 5) + "–" + Math.round(8 + far * 6) + " dias úteis", price: +(17.9 + far * 9).toFixed(2) },
-          { id: "SEDEX", label: "SEDEX", days: Math.round(1 + far * 3) + "–" + Math.round(3 + far * 4) + " dias úteis", price: +(29.4 + far * 14).toFixed(2) },
-          { id: "JADLOG", label: "Jadlog .Package", days: Math.round(4 + far * 4) + "–" + Math.round(7 + far * 5) + " dias úteis", price: +(16.5 + far * 8).toFixed(2) }];
+// ---------- frete (simulado): região pelo CEP, peso da caixa, prazo = produção + transporte ----------
+const PROD_DAYS = 3, ORIGIN = "São Paulo – SP";
+const KG = { "Cortadores de brownie": .16, "Cortadores de biscoito": .09, "Carimbos": .07, "Ejetores": .05, "Chaveiros e lembrancinhas": .04, "Casa e utilidades": .12 };
+const UF_REG = { SP: 0, RJ: 1, MG: 1, ES: 1, PR: 1, SC: 1, RS: 2, MS: 2, GO: 2, DF: 2, MT: 3, BA: 3, SE: 3, AL: 3, PE: 3, PB: 3, RN: 3, CE: 3, PI: 3, TO: 3, MA: 4, PA: 4, AP: 4, AM: 4, RR: 4, RO: 4, AC: 4 };
+const FIRST_UF = ["SP", "SP", "RJ", "MG", "BA", "PE", "CE", "DF", "PR", "RS"];
+const cepInfo = {};
+const cepDigits = (v) => String(v || "").replace(/\D/g, "").slice(0, 8);
+const cepMask = (v) => { const d = cepDigits(v); return d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d; };
+async function lookupCep(cep) {
+  const d = cepDigits(cep); if (d.length !== 8) return null; if (cepInfo[d]) return cepInfo[d];
+  try { const r = await fetch("https://viacep.com.br/ws/" + d + "/json/"); const j = await r.json();
+    cepInfo[d] = j.erro ? { err: true } : { city: j.localidade, uf: j.uf, bairro: j.bairro }; }
+  catch (e) { cepInfo[d] = { uf: FIRST_UF[+d[0]], guess: true }; }
+  return cepInfo[d];
+}
+const itemKg = (p) => KG[p && p.cat] || .1;
+const cartKg = () => .12 + cart.reduce((a, c) => a + itemKg(products.find(x => x.id === c.id)) * c.qty, 0);
+function addBiz(n) { const d = new Date(); let k = 0; while (k < n) { d.setDate(d.getDate() + 1); const w = d.getDay(); if (w && w !== 6) k++; } return d; }
+const fmtDay = (d) => d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" }).replace(".", "");
+function freightFor(cep, kg) {
+  const d = cepDigits(cep); if (d.length !== 8) return null;
+  const info = cepInfo[d] || { uf: FIRST_UF[+d[0]], guess: true }; if (info.err) return null;
+  const reg = UF_REG[info.uf] != null ? UF_REG[info.uf] : 2, w = Math.max(.3, kg || .3), extra = Math.max(0, Math.ceil((w - .3) / .5));
+  const mk = (id, label, base, perHalf, d0, d1) => { const price = +(base + reg * base * .22 + extra * perHalf).toFixed(2), t0 = d0 + reg, t1 = d1 + Math.round(reg * 1.5);
+    return { id, label, price, t0, t1, days: t0 + "–" + t1 + " dias úteis", eta: "chega entre " + fmtDay(addBiz(PROD_DAYS + t0)) + " e " + fmtDay(addBiz(PROD_DAYS + t1)) }; };
+  return [mk("PAC", "PAC", 17.9, 3.2, 4, 6), mk("JADLOG", "Jadlog .Package", 16.5, 2.9, 4, 7), mk("SEDEX", "SEDEX", 27.4, 5.8, 1, 2)];
+}
+const placeLine = (cep) => { const i = cepInfo[cepDigits(cep)]; if (!i) return ""; if (i.err) return '<span class="note" style="color:var(--bad)">CEP não encontrado. Confira os números.</span>';
+  return `<span class="note">Entrega em <b>${esc(i.city || "")}${i.city ? " – " : ""}${esc(i.uf || "")}</b>${i.guess ? " (região aproximada)" : ""} · saindo de ${ORIGIN}</span>`; };
+function shipRows(opts, sel, name) {
+  return opts.map((o, i) => `<label style="--i:${i}">${name ? `<input type="radio" name="${name}" value="${o.id}" ${sel === o.id ? "checked" : ""}>` : ""}<span style="display:grid;gap:1px"><span>${esc(o.label)}</span><span class="note">${esc(o.eta)}</span></span><b>${o.price ? brl(o.price) : '<span class="fs">Grátis</span>'}</b></label>`).join("");
 }
 
 function openProduct(id) {
@@ -473,7 +498,7 @@ function openProduct(id) {
         ${(p.sizes || []).length ? `<div class="opt"><label>Tamanho</label><div class="chips" id="pSize">${p.sizes.map(s => `<button type="button" data-v="${esc(s)}" aria-pressed="${s === sel.size}">${esc(s)}</button>`).join("")}</div></div>` : ""}
         ${(p.colors || []).length ? `<div class="opt"><label>Cor do material</label><div class="chips" id="pColor">${p.colors.map(s => `<button type="button" data-v="${esc(s)}" aria-pressed="${s === sel.color}"><span class="swatch" style="background:${COLORS[s] || "#999"}"></span>${esc(s)}</button>`).join("")}</div></div>` : ""}
         ${p.custom ? `<div class="opt"><label for="pText">Texto para personalizar</label><input class="inp" id="pText" maxlength="40" placeholder="Ex.: Maria, 15 anos, lista de nomes"><span class="note">A gente manda uma prévia antes de imprimir.</span></div>` : ""}
-        <div class="opt"><label for="pCep">Calcular frete</label><div class="row"><input class="inp" id="pCep" inputmode="numeric" placeholder="00000-000" maxlength="9" value="13010-000"><button class="btn ghost sm" type="button" id="pCepBtn">Calcular</button></div><div class="ship" id="pShip"></div></div>
+        <div class="opt"><label for="pCep">Calcular frete</label><div class="row"><input class="inp" id="pCep" inputmode="numeric" placeholder="00000-000" maxlength="9" value="${esc(ckCep)}"><button class="btn ghost sm" type="button" id="pCepBtn">Calcular</button></div><div class="ship" id="pShip"></div></div>
         <p class="note">Produzido sob encomenda em até ${esc(p.days || "3 dias úteis")}</p>
       </div></div></div>
     <div class="sh-f"><div class="row" style="justify-content:space-between"><div class="qty" aria-label="Quantidade"><button type="button" id="qm" aria-label="Diminuir">−</button><span id="qv">1</span><button type="button" id="qp" aria-label="Aumentar">+</button></div>
@@ -481,7 +506,12 @@ function openProduct(id) {
   el.querySelector(".x").onclick = closeSheets;
   const chips = (box, key) => el.querySelectorAll("#" + box + " button").forEach(b => b.onclick = () => { sel[key] = b.dataset.v; el.querySelectorAll("#" + box + " button").forEach(x => x.setAttribute("aria-pressed", x === b)); });
   chips("pSize", "size"); chips("pColor", "color");
-  const calc = () => { const f = freightFor($("pCep").value); $("pShip").innerHTML = f ? f.map((o, i) => `<label style="--i:${i}"><span>${o.label}</span><span class="note">${o.days}</span><b>${brl(o.price)}</b></label>`).join("") + '<span class="note">Valores de exemplo. Na loja de verdade vêm do Melhor Envio.</span>' : '<span class="note">Digite um CEP com 8 números.</span>'; };
+  const calc = async () => { const v = cepMask($("pCep").value); $("pCep").value = v; ckCep = v; if (cepDigits(v).length !== 8) { $("pShip").innerHTML = '<span class="note">Digite um CEP com 8 números.</span>'; return; }
+    $("pShip").innerHTML = '<span class="note">Calculando…</span>'; await lookupCep(v); let f = freightFor(v, .12 + itemKg(p) * sel.qty);
+    if (f && p.fs) f = f.map(o => o.id === "PAC" ? Object.assign({}, o, { price: 0, label: "PAC · Frete grátis" }) : o);
+    $("pShip").innerHTML = placeLine(v) + (f ? shipRows(f) + `<span class="note">Prazo = produção (até ${PROD_DAYS} dias úteis) + transporte. Valores de exemplo; na loja de verdade vêm do Melhor Envio.</span>` : ""); };
+  $("pCep").addEventListener("input", () => { const v = cepMask($("pCep").value); $("pCep").value = v; if (cepDigits(v).length === 8) calc(); });
+  if (cepDigits(ckCep).length === 8) setTimeout(calc, 0);
   $("pCepBtn").onclick = calc; $("pCep").addEventListener("keydown", e => { if (e.key === "Enter") calc(); });
   $("qm").onclick = () => { sel.qty = Math.max(1, sel.qty - 1); $("qv").textContent = sel.qty; };
   $("qp").onclick = () => { sel.qty = Math.min(20, sel.qty + 1); $("qv").textContent = sel.qty; };
@@ -532,17 +562,20 @@ function renderCart() {
   if (!cart.length) { el.innerHTML = head("Carrinho") + `<div class="sh-b"><p class="empty">Seu carrinho está vazio.</p></div>`; el.querySelector(".x").onclick = closeSheets; return; }
   const items = cart.map((c, i) => { const p = products.find(x => x.id === c.id); return `<div class="ci">${thumbHTML(p)}<div><div class="nm">${esc(p.name)}</div><div class="meta">${esc([c.size, c.color].filter(Boolean).join(" · "))}${c.text ? " · “" + esc(c.text) + "”" : ""}</div>
     <div class="qty" style="margin-top:6px"><button type="button" data-i="${i}" data-d="-1" aria-label="Diminuir">−</button><span>${c.qty}</span><button type="button" data-i="${i}" data-d="1" aria-label="Aumentar">+</button></div></div><b class="mono">${brl(p.price * c.qty)}</b></div>`; }).join("");
-  let opts = freightFor(ckCep || ""); if (opts && cart.length && cart.every(c => (products.find(x => x.id === c.id) || {}).fs)) opts = opts.map(o => o.id === "PAC" ? Object.assign({}, o, { price: 0, label: "PAC · Frete grátis" }) : o);
+  let opts = freightFor(ckCep || "", cartKg()); if (opts && cart.length && cart.every(c => (products.find(x => x.id === c.id) || {}).fs)) opts = opts.map(o => o.id === "PAC" ? Object.assign({}, o, { price: 0, label: "PAC · Frete grátis" }) : o);
   if (ckStep === "cart") {
     el.innerHTML = head("Carrinho") + `<div class="sh-b">${items}
-      <div class="opt"><label for="cCep">CEP de entrega</label><div class="row"><input class="inp" id="cCep" inputmode="numeric" maxlength="9" placeholder="00000-000" value="${esc(ckCep)}"><button class="btn ghost sm" type="button" id="cCepBtn">Calcular</button></div>
-      <div class="ship" id="cShip">${opts ? opts.map(o => `<label><input type="radio" name="ship" value="${o.id}" ${ckShip === o.id ? "checked" : ""}><span>${o.label}</span><span class="note">${o.days}</span><b>${brl(o.price)}</b></label>`).join("") : ""}</div></div></div>
-      <div class="sh-f"><div class="sum"><div><span>Produtos</span><span>${brl(sub)}</span></div><div><span>Frete</span><span>${ckShip && opts ? brl(opts.find(o => o.id === ckShip).price) : "—"}</span></div>
+      <div class="opt"><label for="cCep">Calcular frete e prazo</label><div class="row"><input class="inp" id="cCep" inputmode="numeric" maxlength="9" placeholder="00000-000" value="${esc(ckCep)}" autocomplete="postal-code"><button class="btn ghost sm" type="button" id="cCepBtn">Calcular</button></div>
+      <div class="ship" id="cShip">${placeLine(ckCep)}${opts ? shipRows(opts, ckShip, "ship") + `<span class="note">Caixa com ${cart.reduce((a, c) => a + c.qty, 0)} ${cart.reduce((a, c) => a + c.qty, 0) === 1 ? "item" : "itens"} · cerca de ${cartKg().toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg. Prazo = produção (até ${PROD_DAYS} dias úteis) + transporte. Valores de exemplo; na loja de verdade vêm do Melhor Envio.</span>` : ""}</div></div></div>
+      <div class="sh-f"><div class="sum"><div><span>Produtos</span><span>${brl(sub)}</span></div><div><span>Frete${ckShip && opts ? " · " + esc(opts.find(o => o.id === ckShip).label) : ""}</span><span>${ckShip && opts ? (opts.find(o => o.id === ckShip).price ? brl(opts.find(o => o.id === ckShip).price) : "Grátis") : "—"}</span></div>${ckShip && opts ? `<div><span class="note">Entrega</span><span class="note">${esc(opts.find(o => o.id === ckShip).eta)}</span></div>` : ""}
       <div class="tot"><span>Total</span><span>${brl(sub + (ckShip && opts ? opts.find(o => o.id === ckShip).price : 0))}</span></div></div>
       <button class="btn" type="button" id="cNext" ${ckShip ? "" : "disabled"}>Continuar para o pagamento</button>${ckShip ? "" : '<span class="note" style="text-align:center">Calcule e escolha o frete para continuar.</span>'}</div>`;
     el.querySelector(".x").onclick = closeSheets;
     el.querySelectorAll(".qty button").forEach(b => b.onclick = () => { const c = cart[+b.dataset.i]; c.qty += +b.dataset.d; if (c.qty < 1) cart.splice(+b.dataset.i, 1); renderCartN(); renderCart(); });
-    $("cCepBtn").onclick = () => { ckCep = $("cCep").value; ckShip = null; renderCart(); if (!freightFor(ckCep)) toast("Digite um CEP com 8 números."); };
+    const go = async () => { ckCep = cepMask($("cCep").value); ckShip = null; if (cepDigits(ckCep).length !== 8) { toast("Digite um CEP com 8 números."); return; }
+      $("cShip").innerHTML = '<span class="note">Calculando…</span>'; await lookupCep(ckCep); const o2 = freightFor(ckCep, cartKg()); if (o2) ckShip = (o2.find(o => o.id === "PAC") || o2[0]).id; renderCart(); };
+    $("cCepBtn").onclick = go;
+    $("cCep").addEventListener("input", () => { const v = cepMask($("cCep").value); $("cCep").value = v; if (cepDigits(v).length === 8 && v !== ckCep) go(); });
     el.querySelectorAll('input[name="ship"]').forEach(r => r.onchange = () => { ckShip = r.value; renderCart(); });
     $("cNext").onclick = () => { ckStep = "pay"; renderCart(); };
     return;
@@ -556,7 +589,7 @@ function renderCart() {
       <button type="button" data-p="pix" aria-pressed="${ckPay === "pix"}"><b>Pix</b><small>${brl(pixTotal)} · 5% off</small></button>
       <button type="button" data-p="card" aria-pressed="${ckPay === "card"}"><b>Cartão</b><small>até 3x de ${brl(total / 3)}</small></button></div>
       <span class="note">Na loja de verdade, o pagamento abre a tela segura do Mercado Pago. Aqui é só simulação.</span></div></div>
-    <div class="sh-f"><div class="sum"><div><span>Produtos</span><span>${brl(ckPay === "pix" ? sub * .95 : sub)}</span></div><div><span>Frete ${esc(ckShip)}</span><span>${brl(fr)}</span></div><div class="tot"><span>Total</span><span>${brl(ckPay === "pix" ? pixTotal : total)}</span></div></div>
+    <div class="sh-f"><div class="sum"><div><span>Produtos</span><span>${brl(ckPay === "pix" ? sub * .95 : sub)}</span></div><div><span>Frete · ${esc(opts.find(o => o.id === ckShip).label)}</span><span>${fr ? brl(fr) : "Grátis"}</span></div><div><span class="note">Entrega</span><span class="note">${esc(opts.find(o => o.id === ckShip).eta)}</span></div><div class="tot"><span>Total</span><span>${brl(ckPay === "pix" ? pixTotal : total)}</span></div></div>
       <div class="row"><button class="btn ghost" type="button" id="kBack">Voltar</button><button class="btn" type="button" id="kGo" style="flex:1">Finalizar pedido (simulação)</button></div></div>`;
   el.querySelector(".x").onclick = closeSheets;
   el.querySelectorAll("#kPay button").forEach(b => b.onclick = () => { ckPay = b.dataset.p; renderCart(); });
